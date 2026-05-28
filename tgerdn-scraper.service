@@ -1,0 +1,14 @@
+[Unit]
+Description=TGE Energy Prices Scraper and YAML Generator
+After=network.target
+
+[Service]
+Type=simple
+User=erwin
+WorkingDirectory=/home/erwin/Projekty/TgeRdn
+ExecStart=/usr/bin/python3 /home/erwin/Projekty/TgeRdn/scheduler.py --output-dir /tmp/tgerdn --interval 1
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
