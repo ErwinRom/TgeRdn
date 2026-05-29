@@ -1,0 +1,33 @@
+{
+  "name": "TGE RDN Scraper",
+  "version": "1.0.0",
+  "slug": "tge_rdn_scraper",
+  "description": "Scrapes TGE RDN electricity prices and writes Home Assistant compatible files.",
+  "startup": "application",
+  "boot": "auto",
+  "host_network": false,
+  "host_ipc": false,
+  "host_pid": false,
+  "options": {
+    "output_dir": "/data/tgerdn",
+    "interval": 1,
+    "hour": "*"
+  },
+  "schema": {
+    "output_dir": "str",
+    "interval": "int",
+    "hour": "str"
+  },
+  "arch": [
+    "amd64",
+    "armv7",
+    "armhf",
+    "aarch64"
+  ],
+  "map": [
+    "config:rw"
+  ],
+  "ports": {},
+  "ports_description": {},
+  "webui": null
+}

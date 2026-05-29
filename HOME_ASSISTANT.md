@@ -1,54 +1,78 @@
-# Home Assistant Configuration for TGE Sensors
+# Konfiguracja Home Assistant dla TGE RDN
 
-## Overview
-Two REST sensors that update automatically every hour:
-1. `sensor.tge_rdn_cena_dzis` - Today's electricity prices
-2. `sensor.tge_rdn_cena_jutro` - Tomorrow's electricity prices
+## Przegląd
+Dwa czujniki REST, które aktualizują się automatycznie co godzinę:
+1. `sensor.tge_rdn_cena_dzis` - ceny dzisiejsze
+2. `sensor.tge_rdn_cena_jutro` - ceny jutrzejsze
 
-## Prerequisites
-1. Install the scraper: `pip install -r requirements.txt`
-2. Run the scheduler: `python scheduler.py --output-dir /tmp/tgerdn`
-3. Ensure `/tmp/tgerdn/` is readable by Home Assistant
+## Wymagania wstępne
+1. Zainstaluj zależności:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Uruchom scheduler:
+   ```bash
+   python scheduler.py --output-dir /tmp/tgerdn
+   ```
+3. Upewnij się, że katalog `/tmp/tgerdn/` jest czytelny dla Home Assistant.
 
-## Configuration
+## Home Assistant OS jako lokalny dodatek
 
-Add to your `configuration.yaml`:
+W repozytorium znajduje się manifest dodatku: `config.json`.
+Możesz użyć tego projektu jako lokalnego dodatku w Home Assistant OS.
+
+### Jak zainstalować lokalny dodatek
+1. Umieść to repozytorium w katalogu lokalnych dodatków lub utwórz własne repozytorium lokalne.
+2. W Home Assistant przejdź do `Supervisor` → `Add-on Store` → `Repositories`.
+3. Dodaj lokalne repozytorium (ścieżka do katalogu z `config.json`).
+4. Zainstaluj dodatek `TGE RDN Scraper`.
+5. Skonfiguruj opcje dodatku:
+   - `output_dir`: `/data/tgerdn`
+   - `interval`: `1`
+   - `hour`: `*`
+6. Uruchom dodatek.
+
+Po uruchomieniu dodatek zapisuje pliki do katalogu `output_dir` w środowisku Home Assistant.
+
+## Konfiguracja w `configuration.yaml`
+
+Dodaj definicje REST sensorów:
 
 ```yaml
 rest:
   - resource: "file:///tmp/tgerdn/tgerdn_prices.yaml"
     name: "TGE RDN Cena Dzis"
-    unique_id: tgerdn_cena_dzis
-    scan_interval: 300  # Check every 5 minutes for updates
+    unique_id: "tgerdn_cena_dzis"
+    scan_interval: 300
+    value_template: "{{ value_json.data_points }}"
     json_attributes:
       - prices
       - last_update
       - data_points
       - unit_of_measurement
       - friendly_name
-    value_template: "{{ value_json.data_points }}"
 
   - resource: "file:///tmp/tgerdn/tgerdn_prices_tomorrow.yaml"
     name: "TGE RDN Cena Jutro"
-    unique_id: tgerdn_cena_jutro
+    unique_id: "tgerdn_cena_jutro"
     scan_interval: 300
+    value_template: "{{ value_json.data_points }}"
     json_attributes:
       - prices
       - last_update
       - data_points
       - unit_of_measurement
       - friendly_name
-    value_template: "{{ value_json.data_points }}"
 ```
 
-## Template Sensors (Optional)
+## Opcjonalne czujniki szablonowe
 
-Get the current hour price automatically:
+Możesz dodać czujnik pokazujący aktualną godzinę lub wartości min/max:
 
 ```yaml
 template:
   - sensor:
-      - name: "Current Hour TGE Price"
+      - name: "TGE RDN Aktualna Cena Dzis"
         unique_id: tgerdn_current_price_dzis
         unit_of_measurement: "PLN/MWh"
         state_class: measurement
@@ -60,8 +84,8 @@ template:
               {{ p.rce_pln }}
             {%- endif %}
           {%- endif %}
-        
-      - name: "Tomorrow's Hour Price"
+
+      - name: "TGE RDN Aktualna Cena Jutro"
         unique_id: tgerdn_current_price_jutro
         unit_of_measurement: "PLN/MWh"
         state_class: measurement
@@ -73,8 +97,8 @@ template:
               {{ p.rce_pln }}
             {%- endif %}
           {%- endif %}
-      
-      - name: "Min Price Today"
+
+      - name: "TGE RDN Min Cena Dzis"
         unique_id: tgerdn_min_price_dzis
         unit_of_measurement: "PLN/MWh"
         value_template: |
@@ -82,8 +106,8 @@ template:
           {%- if prices %}
             {{ (prices | map(attribute='rce_pln') | list | min) }}
           {%- endif %}
-      
-      - name: "Max Price Today"
+
+      - name: "TGE RDN Max Cena Dzis"
         unique_id: tgerdn_max_price_dzis
         unit_of_measurement: "PLN/MWh"
         value_template: |
@@ -91,8 +115,8 @@ template:
           {%- if prices %}
             {{ (prices | map(attribute='rce_pln') | list | max) }}
           {%- endif %}
-      
-      - name: "Min Price Tomorrow"
+
+      - name: "TGE RDN Min Cena Jutro"
         unique_id: tgerdn_min_price_jutro
         unit_of_measurement: "PLN/MWh"
         value_template: |
@@ -100,8 +124,8 @@ template:
           {%- if prices %}
             {{ (prices | map(attribute='rce_pln') | list | min) }}
           {%- endif %}
-      
-      - name: "Max Price Tomorrow"
+
+      - name: "TGE RDN Max Cena Jutro"
         unique_id: tgerdn_max_price_jutro
         unit_of_measurement: "PLN/MWh"
         value_template: |
@@ -111,13 +135,13 @@ template:
           {%- endif %}
 ```
 
-## Automations
+## Automatyzacje
 
-### Example 1: Notify when price is below threshold
+### Przykład 1: powiadomienie, gdy cena jest niska
 
 ```yaml
 automation:
-  - alias: "Cheap electricity today"
+  - alias: "TGE RDN - niska cena dziś"
     trigger:
       platform: state
       entity_id: sensor.tge_rdn_cena_dzis
@@ -130,52 +154,28 @@ automation:
             {{ (prices | map(attribute='rce_pln') | list | min) < 100 }}
           {%- endif %}
     action:
-      service: notify.mobile_app_<your_device>
+      service: notify.mobile_app_<twoj_urzadzenie>
       data:
-        title: "TGE Alert"
-        message: "Electricity price is low today!"
+        title: "TGE RDN"
+        message: "Cena prądu jest niska dziś!"
 ```
 
-### Example 2: Track cheapest hour
-
-```yaml
-automation:
-  - alias: "Find cheapest hour today"
-    trigger:
-      platform: state
-      entity_id: sensor.tge_rdn_cena_dzis
-    action:
-      service: script.log_cheapest_hour_today
-
-script:
-  log_cheapest_hour_today:
-    sequence:
-      - service: system_log.write
-        data:
-          level: info
-          logger: custom_component.tge
-          message: |
-            Today's cheapest hour: {% set prices = state_attr('sensor.tge_rdn_cena_dzis', 'prices') %}{{ prices | map(attribute='dtime') | list | first }} - {{ (prices | map(attribute='rce_pln') | list | min) }} PLN/MWh
-```
-
-## Accessing Data
-
-In automations and templates, access the data like this:
+## Dostęp do danych w szablonach
 
 ```jinja
-# Get all prices
+# Wszystkie ceny
 {{ state_attr('sensor.tge_rdn_cena_dzis', 'prices') }}
 
-# Get current hour
+# Aktualna godzina
 {{ now().hour }}
 
-# Get cheapest price
+# Najniższa cena
 {{ (state_attr('sensor.tge_rdn_cena_dzis', 'prices') | map(attribute='rce_pln') | list | min) }}
 
-# Get most expensive price
+# Najwyższa cena
 {{ (state_attr('sensor.tge_rdn_cena_dzis', 'prices') | map(attribute='rce_pln') | list | max) }}
 
-# Get specific hour (e.g., 10:00)
+# Cena o konkretnej godzinie
 {% set prices = state_attr('sensor.tge_rdn_cena_dzis', 'prices') %}
 {% for p in prices %}
   {% if '10:00' in p.dtime %}
@@ -184,55 +184,42 @@ In automations and templates, access the data like this:
 {% endfor %}
 ```
 
-## File Structure
+## Pliki wyjściowe
 
-The scheduler creates these files in `/tmp/tgerdn/`:
+Scheduler tworzy pliki w katalogu `/tmp/tgerdn/`:
 
 ```
 /tmp/tgerdn/
-├── tgerdn_prices.json           # Today's raw JSON
-├── tgerdn_prices.yaml           # Today's YAML (read by sensor)
-├── tgerdn_prices_tomorrow.json  # Tomorrow's raw JSON
-└── tgerdn_prices_tomorrow.yaml  # Tomorrow's YAML (read by sensor)
+├── tgerdn_prices.json
+├── tgerdn_prices.yaml
+├── tgerdn_prices_tomorrow.json
+└── tgerdn_prices_tomorrow.yaml
 ```
 
-## Update Frequency
+## Rozwiązywanie problemów
 
-- **Scraper runs:** Every 1 hour (0:00, 1:00, 2:00, etc.)
-- **Home Assistant reads:** Every 5 minutes (scan_interval)
-- **Data freshness:** At most 5 minutes stale from the last hour update
+### Czujniki są niedostępne
+1. Sprawdź, czy scheduler działa: `ps aux | grep scheduler.py`
+2. Sprawdź, czy pliki istnieją: `ls -la /tmp/tgerdn/`
+3. Sprawdź zawartość: `cat /tmp/tgerdn/tgerdn_prices.yaml | head`
+4. Przeładuj integrację REST w Home Assistant.
 
-## Troubleshooting
-
-### Sensors show unavailable
-1. Check scheduler is running: `ps aux | grep scheduler.py`
-2. Verify files exist: `ls -la /tmp/tgerdn/`
-3. Check file is readable: `cat /tmp/tgerdn/tgerdn_prices.yaml | head`
-4. Reload REST integration: Developer Tools → YAML → Press "Reload custom YAML configurations"
-
-### File permissions
+### Problem z uprawnieniami
 ```bash
-# Ensure Home Assistant can read the files
 sudo chown homeassistant:homeassistant /tmp/tgerdn
 chmod 755 /tmp/tgerdn
 chmod 644 /tmp/tgerdn/*.yaml
 ```
 
-### No data in prices attribute
-- Ensure YAML file is valid: `python -m yaml /tmp/tgerdn/tgerdn_prices.yaml`
-- Check scraper is working: `cd /home/erwin/Projekty/TgeRdn && python scraper.py 28-05-2026`
+### Brak danych w atrybucie `prices`
+- Upewnij się, że plik YAML jest poprawny.
+- Sprawdź działanie scraper-a ręcznie: `python scraper.py 28-05-2026`
 
-## Performance Notes
-
-- Each sensor queries a local YAML file (very fast)
-- No API rate limits since we're reading local files
-- Scheduler uses ~0.5% CPU for ~10 seconds each hour
-- YAML files are ~2-3 KB each
-
-## Next Steps
-
-1. Add to `configuration.yaml`
-2. Restart Home Assistant
-3. Check Developer Tools → States for `sensor.tge_rdn_cena_dzis` and `sensor.tge_rdn_cena_jutro`
-4. Create automations as needed
-5. Add cards to dashboard to visualize the data
+## Uwagi końcowe
+- Integracja oparta jest na lokalnym pliku YAML.
+- Home Assistant odczytuje dane co 5 minut.
+- Scheduler aktualizuje dane co godzinę.
+- Pliki wyjściowe muszą być dostępne dla użytkownika Home Assistant.
+- Dane obejmują 24 ceny godzinowe na dany dzień dostawy.
+- Jeśli używasz lokalnego dodatku HA, ustaw `output_dir` w konfiguracji dodatku.
+- Wartość `scan_interval` 300 oznacza odczyt co 5 minut.

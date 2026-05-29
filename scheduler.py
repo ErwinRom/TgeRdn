@@ -46,7 +46,7 @@ class TGEScheduler:
                 print(f"[{datetime.now().isoformat()}] Running scraper for {label}: {date_str}")
                 
                 result = subprocess.run(
-                    ["python", str(self.script_dir / "scraper.py"), date_str],
+                    [sys.executable, str(self.script_dir / "scraper.py"), date_str],
                     capture_output=True,
                     text=True,
                     timeout=30

@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+README.md
+HOME_ASSISTANT.md
+*.log
