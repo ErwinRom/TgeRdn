@@ -142,19 +142,19 @@ Dzięki temu możesz uruchomić ten projekt jako lokalny add-on w Home Assistant
 3. Dodaj lokalne repozytorium (ścieżka do katalogu z `config.json`).
 4. Znajdź i zainstaluj dodatek `TGE RDN Scraper`.
 5. Skonfiguruj opcje dodatku:
-   - `output_dir`: `/data/tgerdn`
+   - `output_dir`: `/config/tgerdn`
    - `interval`: `1`
    - `hour`: `*`
 6. Uruchom dodatek.
 
-Po uruchomieniu dodatek zapisuje pliki do katalogu `output_dir` w środowisku HA.
+Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` w środowisku HA.
 
 ## Integracja z Home Assistant
 
 Przykład REST sensor w `configuration.yaml`:
 ```yaml
 rest:
-  - resource: "file:///tmp/tgerdn/tgerdn_prices.yaml"
+  - resource: "file:///config/tgerdn/tgerdn_prices.yaml"
     name: "TGE RDN Cena Dzis"
     unique_id: "tgerdn_cena_dzis"
     scan_interval: 300
@@ -166,7 +166,7 @@ rest:
       - unit_of_measurement
       - friendly_name
 
-  - resource: "file:///tmp/tgerdn/tgerdn_prices_tomorrow.yaml"
+  - resource: "file:///config/tgerdn/tgerdn_prices_tomorrow.yaml"
     name: "TGE RDN Cena Jutro"
     unique_id: "tgerdn_cena_jutro"
     scan_interval: 300

@@ -9,7 +9,7 @@
   "host_ipc": false,
   "host_pid": false,
   "options": {
-    "output_dir": "/data/tgerdn",
+    "output_dir": "/config/tgerdn",
     "interval": 1,
     "hour": "*"
   },

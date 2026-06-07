@@ -14,7 +14,7 @@ Dwa czujniki REST, które aktualizują się automatycznie co godzinę:
    ```bash
    python scheduler.py --output-dir /tmp/tgerdn
    ```
-3. Upewnij się, że katalog `/tmp/tgerdn/` jest czytelny dla Home Assistant.
+3. Jeśli używasz HA OS add-on, ustaw `output_dir` na `/config/tgerdn` i sprawdź dostępność tego katalogu dla Home Assistant.
 
 ## Home Assistant OS jako lokalny dodatek
 
@@ -27,12 +27,26 @@ Możesz użyć tego projektu jako lokalnego dodatku w Home Assistant OS.
 3. Dodaj lokalne repozytorium (ścieżka do katalogu z `config.json`).
 4. Zainstaluj dodatek `TGE RDN Scraper`.
 5. Skonfiguruj opcje dodatku:
-   - `output_dir`: `/data/tgerdn`
+   - `output_dir`: `/config/tgerdn`
    - `interval`: `1`
    - `hour`: `*`
 6. Uruchom dodatek.
 
-Po uruchomieniu dodatek zapisuje pliki do katalogu `output_dir` w środowisku Home Assistant.
+Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` wewnątrz Home Assistant.
+
+## Krok po kroku: uruchomienie wersji kontenerowej na HA OS
+1. Skopiuj całe repozytorium do lokalnego repozytorium dodatków Home Assistant.
+2. W Home Assistant przejdź do `Supervisor` → `Add-on Store` → `Repositories` i dodaj repozytorium.
+3. Zainstaluj dodatek `TGE RDN Scraper`.
+4. W ustawieniach dodatku ustaw:
+   - `output_dir`: `/config/tgerdn`
+   - `interval`: `1`
+   - `hour`: `*`
+5. Uruchom dodatek.
+6. Sprawdź, że pliki powstały w katalogu `config/tgerdn` Home Assistant.
+7. Skonfiguruj czujnik REST lub template sensor, aby czytał plik `file:///config/tgerdn/tgerdn_prices.yaml`.
+
+> Jeśli używasz HA OS, plik zapisany w `/config/tgerdn` jest dostępny dla samego Home Assistant.
 
 ## Konfiguracja w `configuration.yaml`
 
@@ -40,7 +54,7 @@ Dodaj definicje REST sensorów:
 
 ```yaml
 rest:
-  - resource: "file:///tmp/tgerdn/tgerdn_prices.yaml"
+  - resource: "file:///config/tgerdn/tgerdn_prices.yaml"
     name: "TGE RDN Cena Dzis"
     unique_id: "tgerdn_cena_dzis"
     scan_interval: 300
@@ -52,7 +66,7 @@ rest:
       - unit_of_measurement
       - friendly_name
 
-  - resource: "file:///tmp/tgerdn/tgerdn_prices_tomorrow.yaml"
+  - resource: "file:///config/tgerdn/tgerdn_prices_tomorrow.yaml"
     name: "TGE RDN Cena Jutro"
     unique_id: "tgerdn_cena_jutro"
     scan_interval: 300
@@ -186,10 +200,10 @@ automation:
 
 ## Pliki wyjściowe
 
-Scheduler tworzy pliki w katalogu `/tmp/tgerdn/`:
+Scheduler tworzy pliki w katalogu `/config/tgerdn/` dla HA OS add-on:
 
 ```
-/tmp/tgerdn/
+/config/tgerdn/
 ├── tgerdn_prices.json
 ├── tgerdn_prices.yaml
 ├── tgerdn_prices_tomorrow.json
@@ -200,15 +214,15 @@ Scheduler tworzy pliki w katalogu `/tmp/tgerdn/`:
 
 ### Czujniki są niedostępne
 1. Sprawdź, czy scheduler działa: `ps aux | grep scheduler.py`
-2. Sprawdź, czy pliki istnieją: `ls -la /tmp/tgerdn/`
-3. Sprawdź zawartość: `cat /tmp/tgerdn/tgerdn_prices.yaml | head`
+2. Sprawdź, czy pliki istnieją: `ls -la /config/tgerdn/`
+3. Sprawdź zawartość: `cat /config/tgerdn/tgerdn_prices.yaml | head`
 4. Przeładuj integrację REST w Home Assistant.
 
 ### Problem z uprawnieniami
 ```bash
-sudo chown homeassistant:homeassistant /tmp/tgerdn
-chmod 755 /tmp/tgerdn
-chmod 644 /tmp/tgerdn/*.yaml
+sudo chown homeassistant:homeassistant /config/tgerdn
+chmod 755 /config/tgerdn
+chmod 644 /config/tgerdn/*.yaml
 ```
 
 ### Brak danych w atrybucie `prices`
