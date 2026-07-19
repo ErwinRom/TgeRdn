@@ -12,17 +12,20 @@ from datetime import datetime, timedelta
 from typing import Optional
 import re
 
-def scrape_tge_prices(date_show: str = "28-05-2026", type_param: int = 1) -> Optional[dict]:
+def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> Optional[dict]:
     """
-    Scrape TGE electricity prices and delivery dates
+    Scrape TGE electricity prices and delivery dates.
     
     Args:
-        date_show: Date parameter in format DD-MM-YYYY (prices returned are for THIS date)
+        date_show: Date parameter in format DD-MM-YYYY. If omitted, today's date is used.
         type_param: Type parameter (1 for standard)
     
     Returns:
         Dictionary containing prices and delivery dates, or None if failed
     """
+    
+    if not date_show:
+        date_show = datetime.now().strftime("%d-%m-%Y")
     
     # TGE returns prices for the NEXT day, so we need to query one day before
     # to get prices for the requested date
@@ -124,11 +127,11 @@ def main():
     """Main entry point"""
     
     # Default parameters
-    date_show = "28-05-2026"
+    date_show = datetime.now().strftime("%d-%m-%Y")
     type_param = 1
     
     # Allow command-line arguments
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 1 and sys.argv[1]:
         date_show = sys.argv[1]
     if len(sys.argv) > 2:
         type_param = int(sys.argv[2])
