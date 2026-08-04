@@ -1,16 +1,28 @@
+import argparse
+import json
+import logging
 import subprocess
 import sys
 import time
-import schedule
-import json
 from datetime import datetime, timedelta
 from pathlib import Path
+import schedule
+
+# Configure structured logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-5s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger(__name__)
 
 
 class TGEScheduler:
     def __init__(self, output_dir: str = "/tmp/tgerdn"):
-        self.output_dir = Path(output_dir).mkdir(parents=True, exist_ok=True)
-        self.script_dir = Path(__file__).parent
+        self.output_dir = Path(output_dir).resolve()
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        # Use resolve() to ensure absolute paths work reliably in subprocess calls
+        self.script_dir = Path(__file__).resolve().parent
 
     @staticmethod
     def get_date_string() -> str:
@@ -22,14 +34,15 @@ class TGEScheduler:
         return tomorrow.strftime("%d-%m-%Y")
 
     def run_scraper(self) -> bool:
-        try:
-            for label, date_str, output_file in [
-                ("dzis", self.get_date_string(), "tgerdn_prices.yaml"),
-                ("jutro", self.get_tomorrow_date_string(), "tgerdn_prices_tomorrow.yaml")
-            ]:
-                print(f"[{datetime.now().isoformat()}] Running scraper for {label}: {date_str}")
-                
-                # Run the scraper
+        labels_config = [
+            ("dzis", self.get_date_string(), "tgerdn_prices.yaml"),
+            ("jutro", self.get_tomorrow_date_string(), "tgerdn_prices_tomorrow.yaml")
+        ]
+
+        success_count = 0
+        for label, date_str, output_file in labels_config:
+            logger.info(f"Running scraper for {label}: {date_str}")
+            try:
                 result = subprocess.run(
                     [sys.executable, str(self.script_dir / "scraper.py"), date_str],
                     capture_output=True,
@@ -38,67 +51,91 @@ class TGEScheduler:
                 )
 
                 if result.returncode != 0:
-                    print(f"Scraper error for {label}: {result.stderr}", file=sys.stderr)
+                    logger.error(f"Scraper error for {label}: {result.stderr.strip()}")
                     continue
-                
-                # Save JSON to file and generate YAML
+
                 json_data = json.loads(result.stdout)
                 self._save_json(json_data, output_file)
                 self._generate_yaml(json_data, output_file)
+                success_count += 1
 
-            return True
+            except subprocess.TimeoutExpired as e:
+                logger.error(f"Scraper timed out for {label}: {e}")
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON decode error for {label}: {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error for {label}: {e}")
 
-        except (subprocess.TimeoutExpired, json.JSONDecodeError, Exception) as e:
-            print(f"[{datetime.now().isoformat()}] Error: {e}", file=sys.stderr)
-            return False
+        return success_count > 0
 
-    def _save_json(self, json_data, output_file):
+    def _save_json(self, json_data, output_file: str):
         json_filename = output_file.replace(".yaml", ".json")
         json_file = self.output_dir / json_filename
-        with open(json_file, 'w', encoding='utf-8') as f:
-            json.dump(json_data, f, indent=2, ensure_ascii=False)
-        print(f"[{datetime.now().isoformat()}] JSON saved to {json_file}")
+        try:
+            with open(json_file, 'w', encoding='utf-8') as f:
+                json.dump(json_data, f, indent=2, ensure_ascii=False)
+            logger.info(f"JSON saved to {json_file}")
+        except IOError as e:
+            logger.error(f"Failed to save JSON to {json_file}: {e}")
 
-    def _generate_yaml(self, json_data, output_file):
+    def _generate_yaml(self, json_data, output_file: str):
         yaml_file = self.output_dir / output_file
-        result = subprocess.run(
-            ["python", str(self.script_dir / "yaml_generator.py"), 
-             str(yaml_file.with_suffix('.json')), str(yaml_file)],
-            capture_output=True,
-            text=True,
-            timeout=30
-        )
-        if result.returncode != 0:
-            print(f"YAML generator error for {output_file}: {result.stderr}", file=sys.stderr)
-        else:
-            print(f"[{datetime.now().isoformat()}] YAML saved to {yaml_file}")
-            print(f"[{datetime.now().isoformat()}] Generated {json_data.get('data_points', 0)} data points")
+        json_input = yaml_file.with_suffix('.json')
+
+        if not json_input.exists():
+            logger.warning(f"JSON input file missing for YAML generation: {json_input}")
+            return
+
+        # Use sys.executable to respect virtual environments and pip paths
+        cmd = [sys.executable, str(self.script_dir / "yaml_generator.py"), str(json_input), str(yaml_file)]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            if result.returncode != 0:
+                logger.error(f"YAML generator error for {output_file}: {result.stderr.strip()}")
+            else:
+                logger.info(f"YAML saved to {yaml_file}")
+                data_points = json_data.get('data_points', 0)
+                logger.info(f"Generated {data_points} data points")
+        except subprocess.TimeoutExpired as e:
+            logger.error(f"YAML generator timed out for {output_file}: {e}")
 
     def job(self):
         success = self.run_scraper()
         status = "✓" if success else "✗"
-        print(f"[{datetime.now().isoformat()}] Job completed {status}\n")
+        logger.info(f"Job completed {status}")
 
     def run(self, interval: int = 1, hour: str = "*"):
-        print(f"TGE Scheduler started")
-        print(f"Output directory: {self.output_dir}")
+        logger.info("TGE Scheduler started")
+        logger.info(f"Output directory: {self.output_dir}")
 
-        schedule.every(interval).hours.do(self.job) if hour == "*" else schedule.every().day.at(hour).do(self.job)
-        
-        print(f"Scheduled to run every {interval} hour(s)" if hour == "*" else f"Scheduled to run daily at {hour}")
-        
+        try:
+            if hour == "*":
+                schedule.every(interval).hours.do(self.job)
+                log_msg = f"Scheduled to run every {interval} hour(s)"
+            else:
+                schedule.every().day.at(hour).do(self.job)
+                log_msg = f"Scheduled to run daily at {hour}"
+        except ValueError as e:
+            logger.error(f"Invalid hour format '{hour}'. Expected HH:MM. Falling back to hourly.")
+            try:
+                schedule.every(interval).hours.do(self.job)
+                log_msg = f"Scheduled to run every {interval} hour(s)"
+            except Exception as e2:
+                logger.error(f"Failed to set up schedule: {e2}")
+                return
+
+        logger.info(log_msg)
         self.job()  # Run first job immediately
+
         try:
             while True:
                 schedule.run_pending()
-                time.sleep(60)  # Check every minute
+                time.sleep(60)  # Check every minute (matches schedule library behavior)
         except KeyboardInterrupt:
-            print("\nScheduler stopped")
-            sys.exit(0)
+            logger.info("\nScheduler stopped")
 
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser(description='TGE Scheduler for Home Assistant')
     parser.add_argument('--output-dir', default='/tmp/tgerdn',
                         help='Output directory for generated files (default: /tmp/tgerdn)')
@@ -107,7 +144,7 @@ def main():
     parser.add_argument('--hour', default='*',
                         help='Specific hour to run (HH:MM format, default: every hour)')
     args = parser.parse_args()
-    
+
     scheduler = TGEScheduler(output_dir=args.output_dir)
     scheduler.run(interval=args.interval, hour=args.hour)
 
