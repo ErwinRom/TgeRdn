@@ -90,7 +90,7 @@ template:
   - sensor:
       - name: "TGE RDN Aktualna Cena Dzis"
         unique_id: tgerdn_current_price_dzis
-        unit_of_measurement: "PLN/MWh"
+        unit_of_measurement: "PLN/kWh"
         state_class: measurement
         value_template: |
           {%- set prices = state_attr('sensor.tge_rdn_cena_dzis', 'prices') %}
@@ -103,7 +103,7 @@ template:
 
       - name: "TGE RDN Aktualna Cena Jutro"
         unique_id: tgerdn_current_price_jutro
-        unit_of_measurement: "PLN/MWh"
+        unit_of_measurement: "PLN/kWh"
         state_class: measurement
         value_template: |
           {%- set prices = state_attr('sensor.tge_rdn_cena_jutro', 'prices') %}
@@ -116,7 +116,7 @@ template:
 
       - name: "TGE RDN Min Cena Dzis"
         unique_id: tgerdn_min_price_dzis
-        unit_of_measurement: "PLN/MWh"
+        unit_of_measurement: "PLN/kWh"
         value_template: |
           {%- set prices = state_attr('sensor.tge_rdn_cena_dzis', 'prices') %}
           {%- if prices %}
@@ -125,7 +125,7 @@ template:
 
       - name: "TGE RDN Max Cena Dzis"
         unique_id: tgerdn_max_price_dzis
-        unit_of_measurement: "PLN/MWh"
+        unit_of_measurement: "PLN/kWh"
         value_template: |
           {%- set prices = state_attr('sensor.tge_rdn_cena_dzis', 'prices') %}
           {%- if prices %}
@@ -134,7 +134,7 @@ template:
 
       - name: "TGE RDN Min Cena Jutro"
         unique_id: tgerdn_min_price_jutro
-        unit_of_measurement: "PLN/MWh"
+        unit_of_measurement: "PLN/kWh"
         value_template: |
           {%- set prices = state_attr('sensor.tge_rdn_cena_jutro', 'prices') %}
           {%- if prices %}
@@ -143,7 +143,7 @@ template:
 
       - name: "TGE RDN Max Cena Jutro"
         unique_id: tgerdn_max_price_jutro
-        unit_of_measurement: "PLN/MWh"
+        unit_of_measurement: "PLN/kWh"
         value_template: |
           {%- set prices = state_attr('sensor.tge_rdn_cena_jutro', 'prices') %}
           {%- if prices %}

@@ -243,5 +243,5 @@ chmod 644 /tmp/tgerdn/*.yaml
 - Scraper pobiera dane dla podanej daty i generuje ceny godzinowe na ten dzień.
 - Dane obejmują 24 godziny dla dnia dostawy.
 - Strefa czasowa: Polska (UTC+2 latem, UTC+1 zimą).
-- Wszystkie ceny podane są w PLN/MWh.
+- Surowe ceny w JSON są podane w PLN/MWh, a ceny w generowanym YAML dla Home Assistant w PLN/kWh.
 - Scheduler aktualizuje dane co godzinę, jeśli jest uruchomiony.
