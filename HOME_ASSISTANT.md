@@ -207,9 +207,7 @@ Scheduler tworzy pliki w katalogu `/config/tgerdn/` dla HA OS add-on:
 ```
 /config/tgerdn/
 ├── tgerdn_prices.json
-├── tgerdn_prices.yaml
-├── tgerdn_prices_tomorrow.json
-└── tgerdn_prices_tomorrow.yaml
+└── tgerdn_prices_tomorrow.json
 ```
 
 ## Rozwiązywanie problemów
@@ -217,22 +215,22 @@ Scheduler tworzy pliki w katalogu `/config/tgerdn/` dla HA OS add-on:
 ### Czujniki są niedostępne
 1. Sprawdź, czy scheduler działa: `ps aux | grep scheduler.py`
 2. Sprawdź, czy pliki istnieją: `ls -la /config/tgerdn/`
-3. Sprawdź zawartość: `cat /config/tgerdn/tgerdn_prices.yaml | head`
+3. Sprawdź zawartość: `cat /config/tgerdn/tgerdn_prices.json | head`
 4. Przeładuj integrację REST w Home Assistant.
 
 ### Problem z uprawnieniami
 ```bash
 sudo chown homeassistant:homeassistant /config/tgerdn
 chmod 755 /config/tgerdn
-chmod 644 /config/tgerdn/*.yaml
+chmod 644 /config/tgerdn/*.json
 ```
 
 ### Brak danych w atrybucie `prices`
-- Upewnij się, że plik YAML jest poprawny.
+- Upewnij się, że plik JSON zawiera dane `prices`.
 - Sprawdź działanie scraper-a ręcznie: `python scraper.py 28-05-2026`
 
 ## Uwagi końcowe
-- Integracja oparta jest na lokalnym pliku YAML.
+- Integracja oparta jest na lokalnym pliku JSON.
 - Home Assistant odczytuje dane co 5 minut.
 - Scheduler aktualizuje dane co godzinę.
 - Pliki wyjściowe muszą być dostępne dla użytkownika Home Assistant.

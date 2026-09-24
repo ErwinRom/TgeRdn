@@ -35,8 +35,8 @@ class TGEScheduler:
 
     def run_scraper(self) -> bool:
         labels_config = [
-            ("dzis", self.get_date_string(), "tgerdn_prices.yaml"),
-            ("jutro", self.get_tomorrow_date_string(), "tgerdn_prices_tomorrow.yaml")
+            ("dzis", self.get_date_string(), "tgerdn_prices.json"),
+            ("jutro", self.get_tomorrow_date_string(), "tgerdn_prices_tomorrow.json")
         ]
 
         success_count = 0
@@ -56,8 +56,7 @@ class TGEScheduler:
 
                 json_data = json.loads(result.stdout)
                 self._save_json(json_data, output_file)
-                if self._generate_yaml(json_data, output_file):
-                    success_count += 1
+                success_count += 1
 
             except subprocess.TimeoutExpired as e:
                 logger.error(f"Scraper timed out for {label}: {e}")
@@ -69,37 +68,13 @@ class TGEScheduler:
         return success_count > 0
 
     def _save_json(self, json_data, output_file: str):
-        json_filename = output_file.replace(".yaml", ".json")
-        json_file = self.output_dir / json_filename
+        json_file = self.output_dir / output_file
         try:
             with open(json_file, 'w', encoding='utf-8') as f:
                 json.dump(json_data, f, indent=2, ensure_ascii=False)
             logger.info(f"JSON saved to {json_file}")
         except IOError as e:
             logger.error(f"Failed to save JSON to {json_file}: {e}")
-
-    def _generate_yaml(self, json_data, output_file: str):
-        yaml_file = self.output_dir / output_file
-        json_input = yaml_file.with_suffix('.json')
-
-        if not json_input.exists():
-            logger.warning(f"JSON input file missing for YAML generation: {json_input}")
-            return False
-
-        # Use sys.executable to respect virtual environments and pip paths
-        cmd = [sys.executable, str(self.script_dir / "yaml_generator.py"), str(json_input), str(yaml_file)]
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            if result.returncode != 0:
-                logger.error(f"YAML generator error for {output_file}: {result.stderr.strip()}")
-            else:
-                logger.info(f"YAML saved to {yaml_file}")
-                data_points = len(json_data.get('fixing_i_prices', []))
-                logger.info(f"Generated {data_points} data points")
-                return True
-        except subprocess.TimeoutExpired as e:
-            logger.error(f"YAML generator timed out for {output_file}: {e}")
-        return False
 
     def job(self):
         success = self.run_scraper()

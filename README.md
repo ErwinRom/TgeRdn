@@ -1,6 +1,6 @@
 # TGE RDN Scraper dla Home Assistant
 
-Pythonowy skrypt do pobierania cen energii elektrycznej z TGE (Towarowa Giełda Energii) i generowania plików YAML zgodnych z Home Assistant.
+Pythonowy skrypt do pobierania cen energii elektrycznej z TGE (Towarowa Giełda Energii) i generowania plików JSON zgodnych z Home Assistant.
 
 ## Funkcje
 
@@ -10,9 +10,9 @@ Pythonowy skrypt do pobierania cen energii elektrycznej z TGE (Towarowa Giełda 
 - ✅ pobiera ceny „Fixing I” w PLN/MWh
 - ✅ zapisuje daty dostawy i godziny
 - ✅ 24 ceny godzinowe na dzień
-- ✅ generuje plik YAML do odczytu w Home Assistant
+- ✅ generuje pliki JSON do odczytu w Home Assistant
 - ✅ automatyczne uruchamianie co godzinę
-- ✅ wyjście w formacie JSON oraz YAML
+- ✅ wyjście w formacie JSON
 
 ## Instalacja
 
@@ -41,7 +41,7 @@ python scraper.py 27-05-2026 1
 **Wynik:** JSON z cenami godzinowymi.
 
 ### 2. Generator YAML (`yaml_generator.py`)
-Konwertuje wyjście JSON na format YAML dla Home Assistant.
+Opcjonalne narzędzie ręczne do konwersji wyjścia JSON na YAML.
 
 **Użycie:**
 ```bash
@@ -56,7 +56,7 @@ python yaml_generator.py prices.json
 ```
 
 ### 3. Scheduler (`scheduler.py`)
-Uruchamia scraper i generowanie YAML co godzinę lub według ustawionego harmonogramu.
+Uruchamia scraper i zapisuje pliki JSON co godzinę lub według ustawionego harmonogramu.
 
 **Użycie:**
 ```bash
@@ -190,9 +190,7 @@ W katalogu wyjściowym będą powstawać następujące pliki:
 ```
 {output_dir}/
 ├── tgerdn_prices.json
-├── tgerdn_prices.yaml
-├── tgerdn_prices_tomorrow.json
-└── tgerdn_prices_tomorrow.yaml
+└── tgerdn_prices_tomorrow.json
 ```
 
 ## Rozwiązywanie problemów
@@ -202,8 +200,7 @@ W katalogu wyjściowym będą powstawać następujące pliki:
 - Sprawdź datę i parametry w wywołaniu.
 - Sprawdź połączenie sieciowe.
 
-### Brak pliku YAML
-- Upewnij się, że masz zainstalowany `PyYAML`.
+### Brak danych JSON
 - Sprawdź, czy plik JSON zawiera dane `fixing_i_prices`.
 
 ### Scheduler nie działa
@@ -215,7 +212,7 @@ W katalogu wyjściowym będą powstawać następujące pliki:
 ```bash
 sudo chown homeassistant:homeassistant /tmp/tgerdn
 chmod 755 /tmp/tgerdn
-chmod 644 /tmp/tgerdn/*.yaml
+chmod 644 /tmp/tgerdn/*.json
 ```
 
 ## Pliki w repozytorium
@@ -243,5 +240,5 @@ chmod 644 /tmp/tgerdn/*.yaml
 - Scraper pobiera dane dla podanej daty i generuje ceny godzinowe na ten dzień.
 - Dane obejmują 24 godziny dla dnia dostawy.
 - Strefa czasowa: Polska (UTC+2 latem, UTC+1 zimą).
-- Surowe ceny w JSON są podane w PLN/MWh, a ceny w generowanym YAML dla Home Assistant w PLN/kWh.
+- Ceny w plikach JSON są podane w PLN/MWh; ręczny generator YAML przelicza je na PLN/kWh.
 - Scheduler aktualizuje dane co godzinę, jeśli jest uruchomiony.
