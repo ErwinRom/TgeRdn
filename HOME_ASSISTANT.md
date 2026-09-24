@@ -18,13 +18,13 @@ Dwa czujniki REST, które aktualizują się automatycznie co godzinę:
 
 ## Home Assistant OS jako lokalny dodatek
 
-W repozytorium znajduje się manifest dodatku: `config.json`.
+W repozytorium znajduje się manifest dodatku: `config.yaml`.
 Możesz użyć tego projektu jako lokalnego dodatku w Home Assistant OS.
 
 ### Jak zainstalować lokalny dodatek
-1. Umieść to repozytorium w katalogu lokalnych dodatków lub utwórz własne repozytorium lokalne.
+1. Home Assistant OS: umieść katalog dodatku jako `/addons/tgerdn/` (obok katalogu `config`, nie w `/config/addons/`).
 2. W Home Assistant przejdź do `Supervisor` → `Add-on Store` → `Repositories`.
-3. Dodaj lokalne repozytorium (ścieżka do katalogu z `config.json`).
+3. Jeśli dodatek nie pojawi się automatycznie, dodaj repozytorium zawierające katalog z `config.yaml`.
 4. Zainstaluj dodatek `TGE RDN Scraper`.
 5. Skonfiguruj opcje dodatku:
    - `output_dir`: `/config/tgerdn`

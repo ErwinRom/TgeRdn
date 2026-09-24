@@ -133,13 +133,13 @@ W kontenerze dane zapisują się do `/data/tgerdn`, co jest mapowane na katalog 
 
 ## Home Assistant OS jako lokalny dodatek
 
-Repozytorium zawiera już manifest dodatku: `config.json`.
+Repozytorium zawiera już manifest dodatku: `config.yaml`.
 Dzięki temu możesz uruchomić ten projekt jako lokalny add-on w Home Assistant OS.
 
 ### Jak zainstalować lokalny dodatek
-1. Skopiuj całe repozytorium do katalogu lokalnych dodatków lub utwórz własne repozytorium lokalne.
+1. Home Assistant OS: skopiuj repozytorium do `/addons/tgerdn/` (nie do `/config/addons/tgerdn/`).
 2. W Home Assistant przejdź do `Supervisor` → `Add-on Store` → `Repositories`.
-3. Dodaj lokalne repozytorium (ścieżka do katalogu z `config.json`).
+3. Jeśli dodatek nie pojawi się automatycznie, dodaj repozytorium zawierające katalog z `config.yaml`.
 4. Znajdź i zainstaluj dodatek `TGE RDN Scraper`.
 5. Skonfiguruj opcje dodatku:
    - `output_dir`: `/config/tgerdn`
@@ -224,7 +224,7 @@ chmod 644 /tmp/tgerdn/*.yaml
 - `requirements.txt` - zależności Pythona
 - `Dockerfile` - konteneryzacja
 - `run.sh` - entrypoint do kontenera
-- `config.json` - manifest dodatku Home Assistant OS
+- `config.yaml` - manifest dodatku Home Assistant OS
 - `tgerdn-scraper.service` - przykładowa usługa systemd
 - `setup_cron.sh` - skrypt do utworzenia zadania cron
 

@@ -1,0 +1,22 @@
+name: TGE RDN Scraper
+version: "1.0.0"
+slug: tge_rdn_scraper
+description: Scrapes TGE RDN electricity prices and writes Home Assistant compatible files.
+startup: application
+boot: auto
+init: false
+arch:
+  - amd64
+  - armv7
+  - armhf
+  - aarch64
+options:
+  output_dir: /config/tgerdn
+  interval: 1
+  hour: "*"
+schema:
+  output_dir: str
+  interval: int
+  hour: str
+map:
+  - config:rw
