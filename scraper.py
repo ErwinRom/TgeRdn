@@ -95,7 +95,7 @@ def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> O
                     entries.append({
                         "data_dostawy": delivery_date.strftime("%Y-%m-%d"),
                         "hour": hour,
-                        "fixing_i_price_pln_mwh": price
+                        "fixing_i_price_pln_kwh": price / 1000
                     })
                 except (ValueError, IndexError):
                     continue  # Skip rows with invalid date format

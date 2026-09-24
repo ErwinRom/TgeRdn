@@ -7,7 +7,7 @@ Pythonowy skrypt do pobierania cen energii elektrycznej z TGE (Towarowa Giełda 
 - ✅ dwa czujniki:
   - `sensor.tge_rdn_cena_dzis` - ceny godzinowe na dziś
   - `sensor.tge_rdn_cena_jutro` - ceny godzinowe na jutro
-- ✅ pobiera ceny „Fixing I” w PLN/MWh
+- ✅ pobiera ceny „Fixing I” z TGE i zapisuje je w JSON w PLN/kWh
 - ✅ zapisuje daty dostawy i godziny
 - ✅ 24 ceny godzinowe na dzień
 - ✅ generuje pliki JSON do odczytu w Home Assistant
@@ -240,5 +240,5 @@ chmod 644 /tmp/tgerdn/*.json
 - Scraper pobiera dane dla podanej daty i generuje ceny godzinowe na ten dzień.
 - Dane obejmują 24 godziny dla dnia dostawy.
 - Strefa czasowa: Polska (UTC+2 latem, UTC+1 zimą).
-- Ceny w plikach JSON są podane w PLN/MWh; ręczny generator YAML przelicza je na PLN/kWh.
+- Ceny w plikach JSON są podane w PLN/kWh; strona TGE publikuje źródłową kolumnę w PLN/MWh.
 - Scheduler aktualizuje dane co godzinę, jeśli jest uruchomiony.

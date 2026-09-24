@@ -172,7 +172,7 @@ def generate_yaml_from_json(json_data: dict, output_file: Optional[str] = None) 
         data["prices"].append({
             "dtime": datetime(date_obj.year, date_obj.month, date_obj.day, hour % 24, 0).isoformat(),
             "period": f"{(hour - 1):02d}:00-{hour:02d}:00",
-            "rce_pln": entry["fixing_i_price_pln_mwh"] / 1000,
+            "rce_pln": entry["fixing_i_price_pln_kwh"],
             "business_date": date_obj.strftime("%Y-%m-%d")
         })
     
