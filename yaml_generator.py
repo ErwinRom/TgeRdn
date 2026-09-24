@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 import re
 import sys
+import argparse
 
 def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> dict:
     """
@@ -235,21 +236,21 @@ def generate_yaml_from_json(json_data: dict, output_file: Optional[str] = None) 
 
 def main():
     """Main entry point"""
-    
-    if len(sys.argv) < 2:
-        print("Usage: python scraper.py [-h|--help] [input.json output.yaml]", file=sys.stderr)
-        sys.exit(1)
-    
-    # Handle command-line arguments
-    args = sys.argv[1:]
-    input_file = None
-    output_file = None
-    
-    for arg in args:
-        if '-f' in arg:
-            input_file = next(iter(args))
-        elif '-o' in arg:
-            output_file = next(iter(args))
+
+    parser = argparse.ArgumentParser(
+        description="Convert TGE price JSON to Home Assistant YAML"
+    )
+    parser.add_argument("input_file", nargs="?", help="Input JSON file")
+    parser.add_argument("output_file", nargs="?", help="Output YAML file")
+    parser.add_argument("-f", "--input", dest="input_option", help="Input JSON file")
+    parser.add_argument("-o", "--output", dest="output_option", help="Output YAML file")
+    args = parser.parse_args()
+
+    input_file = args.input_option or args.input_file
+    output_file = args.output_option or args.output_file
+
+    if not input_file:
+        parser.error("an input JSON file is required")
     
     try:
         with open(input_file, 'r', encoding='utf-8') as f:

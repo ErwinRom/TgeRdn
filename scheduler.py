@@ -56,8 +56,8 @@ class TGEScheduler:
 
                 json_data = json.loads(result.stdout)
                 self._save_json(json_data, output_file)
-                self._generate_yaml(json_data, output_file)
-                success_count += 1
+                if self._generate_yaml(json_data, output_file):
+                    success_count += 1
 
             except subprocess.TimeoutExpired as e:
                 logger.error(f"Scraper timed out for {label}: {e}")
@@ -84,7 +84,7 @@ class TGEScheduler:
 
         if not json_input.exists():
             logger.warning(f"JSON input file missing for YAML generation: {json_input}")
-            return
+            return False
 
         # Use sys.executable to respect virtual environments and pip paths
         cmd = [sys.executable, str(self.script_dir / "yaml_generator.py"), str(json_input), str(yaml_file)]
@@ -96,8 +96,10 @@ class TGEScheduler:
                 logger.info(f"YAML saved to {yaml_file}")
                 data_points = json_data.get('data_points', 0)
                 logger.info(f"Generated {data_points} data points")
+                return True
         except subprocess.TimeoutExpired as e:
             logger.error(f"YAML generator timed out for {output_file}: {e}")
+        return False
 
     def job(self):
         success = self.run_scraper()
