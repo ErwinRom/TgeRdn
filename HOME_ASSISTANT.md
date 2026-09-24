@@ -44,39 +44,41 @@ Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` wewnątrz Ho
    - `hour`: `*`
 5. Uruchom dodatek.
 6. Sprawdź, że pliki powstały w katalogu `config/tgerdn` Home Assistant.
-7. Skonfiguruj czujnik REST lub template sensor, aby czytał plik `file:///config/tgerdn/tgerdn_prices.yaml`.
+7. Dodaj konfigurację `command_line` poniżej, aby używać plików JSON jako encji.
 
 > Jeśli używasz HA OS, plik zapisany w `/config/tgerdn` jest dostępny dla samego Home Assistant.
 
 ## Konfiguracja w `configuration.yaml`
 
-Dodaj definicje REST sensorów:
+Dodaj definicje sensorów `command_line`:
 
 ```yaml
-rest:
-  - resource: "file:///config/tgerdn/tgerdn_prices.yaml"
-    name: "TGE RDN Cena Dzis"
-    unique_id: "tgerdn_cena_dzis"
-    scan_interval: 300
-    value_template: "{{ value_json.data_points }}"
-    json_attributes:
-      - prices
-      - last_update
-      - data_points
-      - unit_of_measurement
-      - friendly_name
+command_line:
+  - sensor:
+      name: "TGE RDN Cena Dzis"
+      unique_id: "tgerdn_cena_dzis"
+      command: "cat /config/tgerdn/tgerdn_prices.json"
+      scan_interval: 300
+      value_template: "{{ value_json.data_points }}"
+      json_attributes:
+        - prices
+        - last_update
+        - data_points
+        - unit_of_measurement
+        - friendly_name
 
-  - resource: "file:///config/tgerdn/tgerdn_prices_tomorrow.yaml"
-    name: "TGE RDN Cena Jutro"
-    unique_id: "tgerdn_cena_jutro"
-    scan_interval: 300
-    value_template: "{{ value_json.data_points }}"
-    json_attributes:
-      - prices
-      - last_update
-      - data_points
-      - unit_of_measurement
-      - friendly_name
+  - sensor:
+      name: "TGE RDN Cena Jutro"
+      unique_id: "tgerdn_cena_jutro"
+      command: "cat /config/tgerdn/tgerdn_prices_tomorrow.json"
+      scan_interval: 300
+      value_template: "{{ value_json.data_points }}"
+      json_attributes:
+        - prices
+        - last_update
+        - data_points
+        - unit_of_measurement
+        - friendly_name
 ```
 
 ## Opcjonalne czujniki szablonowe

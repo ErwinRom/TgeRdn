@@ -153,30 +153,32 @@ Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` w środowisk
 
 Przykład REST sensor w `configuration.yaml`:
 ```yaml
-rest:
-  - resource: "file:///config/tgerdn/tgerdn_prices.yaml"
-    name: "TGE RDN Cena Dzis"
-    unique_id: "tgerdn_cena_dzis"
-    scan_interval: 300
-    value_template: "{{ value_json.data_points }}"
-    json_attributes:
-      - prices
-      - last_update
-      - data_points
-      - unit_of_measurement
-      - friendly_name
+command_line:
+  - sensor:
+      name: "TGE RDN Cena Dzis"
+      unique_id: "tgerdn_cena_dzis"
+      command: "cat /config/tgerdn/tgerdn_prices.json"
+      scan_interval: 300
+      value_template: "{{ value_json.data_points }}"
+      json_attributes:
+        - prices
+        - last_update
+        - data_points
+        - unit_of_measurement
+        - friendly_name
 
-  - resource: "file:///config/tgerdn/tgerdn_prices_tomorrow.yaml"
-    name: "TGE RDN Cena Jutro"
-    unique_id: "tgerdn_cena_jutro"
-    scan_interval: 300
-    value_template: "{{ value_json.data_points }}"
-    json_attributes:
-      - prices
-      - last_update
-      - data_points
-      - unit_of_measurement
-      - friendly_name
+  - sensor:
+      name: "TGE RDN Cena Jutro"
+      unique_id: "tgerdn_cena_jutro"
+      command: "cat /config/tgerdn/tgerdn_prices_tomorrow.json"
+      scan_interval: 300
+      value_template: "{{ value_json.data_points }}"
+      json_attributes:
+        - prices
+        - last_update
+        - data_points
+        - unit_of_measurement
+        - friendly_name
 ```
 
 Możesz też użyć czujnika plikowego (template file sensor) albo innych integracji zgodnych z lokalnym plikiem.
