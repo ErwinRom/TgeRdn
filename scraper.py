@@ -82,24 +82,22 @@ def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> O
                 first_cell_text = cells[0].get_text(strip=True)
                 
                 try:
-                    dt = datetime.strptime(first_cell_text.strip(), "%d-%m-%Y")
-                    today_date = datetime.now().replace(day=1, month=datetime.now().month, year=datetime.now().year)
-                    
-                    if dt == today_date:
-                        delivery_date_str = cells[data_dostawy_col_idx].get_text(strip=True) if data_dostawy_col_idx < len(cells) else ""
-                        price_cell_text = cells[fixing_i_col_idx].get_text(strip=True) if fixing_i_col_idx < len(cells) else ""
-                        
-                        cleaned_price = re.sub(r'\s+', '', price_cell_text).replace(',', '.')
-                        try:
-                            price = float(cleaned_price)
-                        except ValueError:
-                            price = cleaned_price
-                        
-                        entries.append({
-                            "data_dostawy": delivery_date_str,
-                            "fixing_i_price_pln_mwh": price
-                        })
-                except ValueError:
+                    date_text, hour_text = first_cell_text.split('_H', 1)
+                    delivery_date = datetime.strptime(date_text, "%Y-%m-%d")
+                    hour = int(hour_text)
+                    if delivery_date.strftime("%d-%m-%Y") != date_show or not 1 <= hour <= 24:
+                        continue
+
+                    price_cell_text = cells[fixing_i_col_idx].get_text(strip=True) if fixing_i_col_idx >= 0 else ""
+                    cleaned_price = re.sub(r'\s+', '', price_cell_text).replace(',', '.')
+                    price = float(cleaned_price)
+
+                    entries.append({
+                        "data_dostawy": delivery_date.strftime("%Y-%m-%d"),
+                        "hour": hour,
+                        "fixing_i_price_pln_mwh": price
+                    })
+                except (ValueError, IndexError):
                     continue  # Skip rows with invalid date format
             
             data["fixing_i_prices"].extend(entries)
@@ -117,9 +115,9 @@ def main():
     date_show = datetime.now().strftime("%d-%m-%Y")
     type_param = 1
     
-    if len(sys.argv) > 2 and sys.argv[1]:
+    if len(sys.argv) > 1 and sys.argv[1]:
         date_show = sys.argv[1]
-    if len(sys.argv) > 3:
+    if len(sys.argv) > 2:
         type_param = int(sys.argv[2])
     
     data = scrape_tge_prices(date_show, type_param)

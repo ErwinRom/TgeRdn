@@ -157,11 +157,6 @@ def generate_yaml_from_json(json_data: dict, output_file: Optional[str] = None) 
         raise ValueError("Invalid JSON data structure")
     
     prices = json_data["fixing_i_prices"]
-    session = requests.Session()
-    response = session.get('https://tge.pl/energia-elektryczna-rdn', headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}, timeout=10)
-    response.raise_for_status()
-    
-    soup = BeautifulSoup(response.content, 'html.parser')
     data = {
         "last_update": datetime.now().isoformat(),
         "data_points": len(prices),
@@ -171,67 +166,15 @@ def generate_yaml_from_json(json_data: dict, output_file: Optional[str] = None) 
         "friendly_name": "TGE RDN - Cena dzis"
     }
     
-    # Extract and process price tables
-    for table in soup.find_all('table'):
-        text = table.get_text()
-        if 'Fixing I' not in text or 'Data dostawy' not in text:
-            continue
-        
-        rows = [row.extract() for row in table.find_all('tr')]
-        
-        data_dostawy_col_idx = -1
-        fixing_i_col_idx = -1
-        for row in rows:
-            cells = row.find_all(['td', 'th'])
-            if not cells or len(cells) < 2:
-                continue
-            cell_texts = [cell.get_text(strip=True) for cell in cells]
-            
-            if 'Data dostawy' in ''.join(cell_texts):
-                data_dostawy_col_idx = cell_texts.index('Data dostawy')
-            
-            for col, text in enumerate(cell_texts):
-                if 'Kurs [PLN/MWH]' in text and (col > data_dostawy_col_idx):
-                    fixing_i_col_idx = col
-                    break
-        
-        entries = []
-        for row in rows:
-            cells = row.find_all(['td', 'th'])
-            if not cells or len(cells) < 2:
-                continue
-            first_cell_text = cells[0].get_text(strip=True)
-            
-            try:
-                dt_str = datetime.strptime(first_cell_text.strip(), "%d-%m-%Y")
-                date_obj = dt.datetime.strptime(dt_str, "%Y-%m-%d") + timedelta(days=1)  # Corrected logic
-                price_cell_text = cells[fixing_i_col_idx].get_text(strip=True)
-                
-                cleaned_price = re.sub(r'\s+', '', price_cell_text).replace(',', '.')
-                try:
-                    price = float(cleaned_price)
-                except ValueError:
-                    price = cleaned_price
-                
-                entries.append({
-                    "data_dostawy": dt_str,
-                    "fixing_i_price_pln_mwh": price
-                })
-            except ValueError:
-                continue
-        
-        for entry in entries:
-            date_obj = datetime.strptime(entry["data_dostawy"], "%Y-%m-%d")
-            dtime = datetime(date_obj.year, date_obj.month, date_obj.day, int(entry["hour"]), 0, 0)
-            period_start = f"{(entry['hour'] - 1):02d}:00"
-            period_end = f"{entry['hour']:02d}:00"
-            
-            data["prices"].append({
-                "dtime": dtime.isoformat(),
-                "period": f"{period_start}-{period_end}",
-                "rce_pln": entry["fixing_i_price_pln_mwh"],
-                "business_date": datetime.now().strftime("%Y-%m-%d")
-            })
+    for entry in prices:
+        date_obj = datetime.strptime(entry["data_dostawy"], "%Y-%m-%d")
+        hour = int(entry["hour"])
+        data["prices"].append({
+            "dtime": datetime(date_obj.year, date_obj.month, date_obj.day, hour % 24, 0).isoformat(),
+            "period": f"{(hour - 1):02d}:00-{hour:02d}:00",
+            "rce_pln": entry["fixing_i_price_pln_mwh"],
+            "business_date": date_obj.strftime("%Y-%m-%d")
+        })
     
     return yaml.dump(data, allow_unicode=True, sort_keys=False)
 

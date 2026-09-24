@@ -94,7 +94,7 @@ class TGEScheduler:
                 logger.error(f"YAML generator error for {output_file}: {result.stderr.strip()}")
             else:
                 logger.info(f"YAML saved to {yaml_file}")
-                data_points = json_data.get('data_points', 0)
+                data_points = len(json_data.get('fixing_i_prices', []))
                 logger.info(f"Generated {data_points} data points")
                 return True
         except subprocess.TimeoutExpired as e:
