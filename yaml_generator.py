@@ -18,6 +18,7 @@ from typing import Optional
 import re
 import sys
 import argparse
+import yaml
 
 def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> dict:
     """
