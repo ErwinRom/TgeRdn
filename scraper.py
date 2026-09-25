@@ -41,13 +41,14 @@ def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> O
         data = {
             "date_fetched": datetime.now().isoformat(),
             "url": url,
+            "delivery_date": datetime.strptime(date_show, "%d-%m-%Y").strftime("%Y-%m-%d"),
+            "data_fetched": False,
             "fixing_i_prices": []
         }
         
         tables = soup.find_all('table')
         if not tables:
             print("No tables found on page", file=sys.stderr)
-            return data
         
         for table in tables:
             text = table.get_text()
@@ -101,6 +102,18 @@ def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> O
                     continue  # Skip rows with invalid date format
             
             data["fixing_i_prices"].extend(entries)
+
+        data["data_fetched"] = bool(data["fixing_i_prices"])
+
+        if not data["data_fetched"]:
+            data["fixing_i_prices"] = [
+                {
+                    "data_dostawy": data["delivery_date"],
+                    "hour": hour,
+                    "fixing_i_price_pln_kwh": 0
+                }
+                for hour in range(1, 25)
+            ]
         
         return data
         
