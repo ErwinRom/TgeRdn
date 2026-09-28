@@ -16,37 +16,19 @@ Dwa czujniki REST, które aktualizują się automatycznie co godzinę:
    ```
 3. Jeśli używasz HA OS add-on, ustaw `output_dir` na `/config/tgerdn` i sprawdź dostępność tego katalogu dla Home Assistant.
 
-## Home Assistant OS jako lokalny dodatek
+## Instalacja z repozytorium Home Assistant
 
-W repozytorium znajduje się manifest dodatku: `config.yaml`.
-Możesz użyć tego projektu jako lokalnego dodatku w Home Assistant OS.
+Dodaj `https://github.com/ErwinRom/TgeRdn` w `Ustawienia` → `Dodatki` → `Sklep z dodatkami` → menu ⋮ → `Repozytoria`, a następnie zainstaluj `TGE RDN Scraper`.
 
-### Jak zainstalować lokalny dodatek
-1. Home Assistant OS: umieść katalog dodatku jako `/addons/tgerdn/` (obok katalogu `config`, nie w `/config/addons/`).
-2. W Home Assistant przejdź do `Supervisor` → `Add-on Store` → `Repositories`.
-3. Jeśli dodatek nie pojawi się automatycznie, dodaj repozytorium zawierające katalog z `config.yaml`.
-4. Zainstaluj dodatek `TGE RDN Scraper`.
-5. Skonfiguruj opcje dodatku:
+Skonfiguruj opcje dodatku:
    - `output_dir`: `/config/tgerdn`
    - `interval`: `1`
    - `hour`: `*`
-6. Uruchom dodatek.
+Uruchom dodatek. Repozytorium montuje katalog konfiguracji HA pod `/config`, a dane pojawią się w `/config/tgerdn`.
 
 Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` wewnątrz Home Assistant.
 
-## Krok po kroku: uruchomienie wersji kontenerowej na HA OS
-1. Skopiuj całe repozytorium do lokalnego repozytorium dodatków Home Assistant.
-2. W Home Assistant przejdź do `Supervisor` → `Add-on Store` → `Repositories` i dodaj repozytorium.
-3. Zainstaluj dodatek `TGE RDN Scraper`.
-4. W ustawieniach dodatku ustaw:
-   - `output_dir`: `/config/tgerdn`
-   - `interval`: `1`
-   - `hour`: `*`
-5. Uruchom dodatek.
-6. Sprawdź, że pliki powstały w katalogu `config/tgerdn` Home Assistant.
-7. Dodaj konfigurację `command_line` poniżej, aby używać plików JSON jako encji.
-
-> Jeśli używasz HA OS, plik zapisany w `/config/tgerdn` jest dostępny dla samego Home Assistant.
+Po uruchomieniu dodatek tworzy pliki JSON w `/config/tgerdn`. Dodaj konfigurację `command_line` poniżej, aby udostępnić te dane jako encje HA.
 
 ## Konfiguracja w `configuration.yaml`
 
@@ -235,5 +217,5 @@ chmod 644 /config/tgerdn/*.json
 - Scheduler aktualizuje dane co godzinę.
 - Pliki wyjściowe muszą być dostępne dla użytkownika Home Assistant.
 - Dane obejmują 24 ceny godzinowe na dany dzień dostawy.
-- Jeśli używasz lokalnego dodatku HA, ustaw `output_dir` w konfiguracji dodatku.
+- Ustaw `output_dir` w konfiguracji dodatku na `/config/tgerdn`.
 - Wartość `scan_interval` 300 oznacza odczyt co 5 minut.

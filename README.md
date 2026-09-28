@@ -131,21 +131,17 @@ docker run -d \
 
 W kontenerze dane zapisują się do `/data/tgerdn`, co jest mapowane na katalog hosta.
 
-## Home Assistant OS jako lokalny dodatek
+## Instalacja jako repozytorium dodatków HA
 
-Repozytorium zawiera już manifest dodatku: `config.yaml`.
-Dzięki temu możesz uruchomić ten projekt jako lokalny add-on w Home Assistant OS.
+Dodaj repozytorium TGE RDN do Home Assistant Add-on Store:
 
-### Jak zainstalować lokalny dodatek
-1. Home Assistant OS: skopiuj repozytorium do `/addons/tgerdn/` (nie do `/config/addons/tgerdn/`).
-2. W Home Assistant przejdź do `Supervisor` → `Add-on Store` → `Repositories`.
-3. Jeśli dodatek nie pojawi się automatycznie, dodaj repozytorium zawierające katalog z `config.yaml`.
-4. Znajdź i zainstaluj dodatek `TGE RDN Scraper`.
-5. Skonfiguruj opcje dodatku:
+[Dodaj repozytorium TGE RDN](https://my.home-assistant.io/redirect/supervisor_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FErwinRom%2FTgeRdn)
+
+Możesz też dodać ręcznie adres `https://github.com/ErwinRom/TgeRdn` w `Ustawienia` → `Dodatki` → `Sklep z dodatkami` → menu ⋮ → `Repozytoria`. Następnie zainstaluj `TGE RDN Scraper` i ustaw opcje dodatku:
    - `output_dir`: `/config/tgerdn`
    - `interval`: `1`
    - `hour`: `*`
-6. Uruchom dodatek.
+Uruchom dodatek. Zapisze pliki JSON w katalogu konfiguracji HA pod `/config/tgerdn`.
 
 Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` w środowisku HA.
 
@@ -223,7 +219,8 @@ chmod 644 /tmp/tgerdn/*.json
 - `requirements.txt` - zależności Pythona
 - `Dockerfile` - konteneryzacja
 - `run.sh` - entrypoint do kontenera
-- `config.yaml` - manifest dodatku Home Assistant OS
+- `repository.yaml` - metadane repozytorium dodatków Home Assistant
+- `tge_rdn_scraper/` - kompletny dodatek Home Assistant (manifest, Dockerfile i kod)
 - `tgerdn-scraper.service` - przykładowa usługa systemd
 - `setup_cron.sh` - skrypt do utworzenia zadania cron
 
