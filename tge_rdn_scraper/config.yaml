@@ -1,5 +1,5 @@
 name: TGE RDN Scraper
-version: "1.0.1"
+version: "1.0.2"
 slug: tge_rdn_scraper
 description: Scrapes TGE RDN electricity prices and writes Home Assistant compatible files.
 url: https://github.com/ErwinRom/TgeRdn
