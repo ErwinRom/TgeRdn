@@ -10,7 +10,8 @@ Optimizations:
 
 """
 
-import requests
+import asyncio
+import aiohttp
 from bs4 import BeautifulSoup
 import json
 import sys
@@ -18,7 +19,11 @@ from datetime import datetime, timedelta
 from typing import Optional
 import re
 
-def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> Optional[dict]:
+async def scrape_tge_prices(
+    date_show: Optional[str] = None,
+    type_param: int = 1,
+    session: Optional[aiohttp.ClientSession] = None,
+) -> Optional[dict]:
     if not date_show:
         date_show = datetime.now().strftime("%d-%m-%Y")
     
@@ -28,16 +33,19 @@ def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> O
     url = f"https://tge.pl/energia-elektryczna-rdn?dateShow={query_date_str}&type={type_param}"
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
     
-    session = None
-    if not session:
-        session = requests.Session()
+    owns_session = session is None
+    if session is None:
+        session = aiohttp.ClientSession(headers=headers)
+    else:
         session.headers.update(headers)
+    assert session is not None
     
     try:
-        response = session.get(url, timeout=10)
-        response.raise_for_status()
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+            response.raise_for_status()
+            response_content = await response.read()
         
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response_content, 'html.parser')
         data = {
             "date_fetched": datetime.now().isoformat(),
             "url": url,
@@ -117,14 +125,17 @@ def scrape_tge_prices(date_show: Optional[str] = None, type_param: int = 1) -> O
         
         return data
         
-    except requests.RequestException as e:
+    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         print(f"Error fetching URL: {e}", file=sys.stderr)
         return None
     except Exception as e:
         print(f"Error parsing data: {e}", file=sys.stderr)
         return None
+    finally:
+        if owns_session:
+            await session.close()
 
-def main():
+async def main():
     date_show = datetime.now().strftime("%d-%m-%Y")
     type_param = 1
     
@@ -133,9 +144,9 @@ def main():
     if len(sys.argv) > 2:
         type_param = int(sys.argv[2])
     
-    data = scrape_tge_prices(date_show, type_param)
+    data = await scrape_tge_prices(date_show, type_param)
     
     print(json.dumps(data, indent=2, ensure_ascii=False))
     
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
