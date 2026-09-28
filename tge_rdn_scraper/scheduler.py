@@ -57,21 +57,43 @@ class TGEScheduler:
             return False
 
         success_count = 0
-        for (label, _, output_file), json_data in zip(labels_config, results):
+        for (label, date_str, output_file), json_data in zip(labels_config, results):
             if json_data is not None:
+                data_read = json_data.get("data_fetched", False)
+                read_status = "yes" if data_read else "no"
+                logger.info(f"Price data read from TGE page for {label} ({date_str}): {read_status}")
                 self._save_json(json_data, output_file)
                 success_count += 1
             else:
+                logger.info(f"Price data read from TGE page for {label} ({date_str}): no (request or parsing failed)")
                 logger.error(f"Scraper returned no data for {label}")
 
         return success_count > 0
 
     def _save_json(self, json_data, output_file: str):
         json_file = self.output_dir / output_file
+        existing_data = None
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                existing_data = json.load(f)
+        except FileNotFoundError:
+            pass
+        except (IOError, json.JSONDecodeError) as e:
+            logger.warning(f"Could not compare existing JSON at {json_file}: {e}")
+
+        if isinstance(existing_data, dict):
+            existing_data.pop("date_fetched", None)
+        new_data = dict(json_data)
+        new_data.pop("date_fetched", None)
+
+        if existing_data is not None and existing_data == new_data:
+            logger.info(f"JSON not updated; data unchanged: {json_file}")
+            return
+
         try:
             with open(json_file, 'w', encoding='utf-8') as f:
                 json.dump(json_data, f, indent=2, ensure_ascii=False)
-            logger.info(f"JSON saved to {json_file}")
+            logger.info(f"JSON updated: {json_file}")
         except IOError as e:
             logger.error(f"Failed to save JSON to {json_file}: {e}")
 
