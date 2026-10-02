@@ -33,6 +33,10 @@ class TGEScheduler:
         tomorrow = datetime.now() + timedelta(days=1)
         return tomorrow.strftime("%d-%m-%Y")
 
+    @staticmethod
+    def get_default_run_times() -> list[str]:
+        return ["00:01", "12:01"]
+
     async def run_scraper(self) -> bool:
         labels_config = [
             ("dzis", self.get_date_string(), "tgerdn_prices.json"),
@@ -114,21 +118,24 @@ class TGEScheduler:
         schedule.clear()
         try:
             if hour == "*":
-                scheduled_job = schedule.every(interval).hours
-                log_msg = f"Scheduled to run every {interval} hour(s)"
+                run_times = self.get_default_run_times()
+                scheduled_jobs = [schedule.every().day.at(run_time) for run_time in run_times]
+                log_msg = f"Scheduled to run daily at: {', '.join(run_times)}"
             else:
-                scheduled_job = schedule.every().day.at(hour)
+                scheduled_jobs = [schedule.every().day.at(hour)]
                 log_msg = f"Scheduled to run daily at {hour}"
         except ValueError as e:
-            logger.error(f"Invalid hour format '{hour}'. Expected HH:MM. Falling back to hourly.")
+            logger.error(f"Invalid hour format '{hour}'. Expected HH:MM. Falling back to default schedule.")
             try:
-                scheduled_job = schedule.every(interval).hours
-                log_msg = f"Scheduled to run every {interval} hour(s)"
+                run_times = self.get_default_run_times()
+                scheduled_jobs = [schedule.every().day.at(run_time) for run_time in run_times]
+                log_msg = f"Scheduled to run daily at: {', '.join(run_times)}"
             except Exception as e2:
                 logger.error(f"Failed to set up schedule: {e2}")
                 return
 
-        scheduled_job.do(self._start_job)
+        for scheduled_job in scheduled_jobs:
+            scheduled_job.do(self._start_job)
         logger.info(log_msg)
 
         stop_event = asyncio.Event()

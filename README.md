@@ -56,7 +56,7 @@ python yaml_generator.py prices.json
 ```
 
 ### 3. Scheduler (`scheduler.py`)
-Uruchamia scraper i zapisuje pliki JSON co godzinę lub według ustawionego harmonogramu.
+Uruchamia scraper i zapisuje pliki JSON dwa razy dziennie: o 00:01 i 12:01. Można też ustawić własną godzinę dzienną w formacie `HH:MM`.
 
 **Użycie:**
 ```bash
@@ -66,17 +66,14 @@ python scheduler.py
 # Inny katalog wyjściowy
 python scheduler.py --output-dir /home/ha/tgerdn
 
-# Co 2 godziny
-python scheduler.py --interval 2
-
 # Specyficzna godzina dzienna
 python scheduler.py --hour "00:00"
 ```
 
 **Opcje:**
 - `--output-dir`: katalog na wygenerowane pliki (domyślnie `/tmp/tgerdn`)
-- `--interval`: co ile godzin uruchamiać zadanie (domyślnie `1`)
-- `--hour`: uruchomienie codziennie o podanej godzinie w formacie `HH:MM` (domyślnie `*`)
+- `--interval`: parametr zachowany dla kompatybilności, ale domyślny harmonogram używa stałych godzin 00:01 i 12:01
+- `--hour`: uruchomienie codziennie o podanej godzinie w formacie `HH:MM`; jeśli pozostawione domyślnie `*`, używane są godziny `00:01` i `12:01`
 
 ## Uruchomienie ciągłe
 
@@ -103,7 +100,8 @@ bash setup_cron.sh
 
 Lub dodaj ręcznie do crontaba:
 ```bash
-0 * * * * cd /home/erwin/Projekty/TgeRdn && python3 scheduler.py --output-dir /tmp/tgerdn >> /var/log/tgerdn.log 2>&1
+1 0 * * * cd /home/erwin/Projekty/TgeRdn && python3 scheduler.py --output-dir /tmp/tgerdn >> /var/log/tgerdn.log 2>&1
+1 12 * * * cd /home/erwin/Projekty/TgeRdn && python3 scheduler.py --output-dir /tmp/tgerdn >> /var/log/tgerdn.log 2>&1
 ```
 
 ### Opcja 3: Kontener Docker

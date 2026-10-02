@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+- Fixed the default scraper schedule to run only at 00:01 and 12:01.
+- Updated the cron setup to match the same two execution times.
+- Added the changelog entry for the schedule change.
+
 ## 1.0.2
 
 - Add a PLN lightning-bolt icon and TGE RDN logo for the Home Assistant add-on.

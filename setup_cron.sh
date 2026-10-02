@@ -1,5 +1,5 @@
 #!/bin/bash
-# Setup script for TGE scraper - creates cron job for hourly execution
+# Setup script for TGE scraper - creates cron jobs for 00:01 and 12:01
 
 SCRIPT_DIR="/home/erwin/Projekty/TgeRdn"
 OUTPUT_DIR="/tmp/tgerdn"
@@ -9,16 +9,17 @@ LOG_FILE="/var/log/tgerdn-scraper.log"
 mkdir -p "$OUTPUT_DIR"
 chmod 755 "$OUTPUT_DIR"
 
-# Create cron entry for every hour
-CRON_JOB="0 * * * * cd $SCRIPT_DIR && /usr/bin/python3 scheduler.py --output-dir $OUTPUT_DIR >> $LOG_FILE 2>&1"
+# Create cron entries for the required daily execution times
+CRON_JOB_1="1 0 * * * cd $SCRIPT_DIR && /usr/bin/python3 scheduler.py --output-dir $OUTPUT_DIR >> $LOG_FILE 2>&1"
+CRON_JOB_2="1 12 * * * cd $SCRIPT_DIR && /usr/bin/python3 scheduler.py --output-dir $OUTPUT_DIR >> $LOG_FILE 2>&1"
 
 # Check if cron job already exists
 if crontab -l 2>/dev/null | grep -q "tgerdn-scraper"; then
-    echo "Cron job already exists"
+    echo "Cron jobs already exist"
 else
-    # Add cron job
-    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-    echo "Cron job installed"
+    # Add cron jobs
+    (crontab -l 2>/dev/null; echo "$CRON_JOB_1"; echo "$CRON_JOB_2") | crontab -
+    echo "Cron jobs installed"
 fi
 
 # Create log file if needed
