@@ -37,6 +37,12 @@ class TGEScheduler:
     def get_default_run_times() -> list[str]:
         return ["00:01", "12:01"]
 
+    @staticmethod
+    def get_run_times(hour: str) -> list[str]:
+        if hour.strip() == "*":
+            return TGEScheduler.get_default_run_times()
+        return [run_time.strip() for run_time in hour.split(",")]
+
     async def run_scraper(self) -> bool:
         labels_config = [
             ("dzis", self.get_date_string(), "tgerdn_prices.json"),
@@ -111,22 +117,19 @@ class TGEScheduler:
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
 
-    async def run(self, interval: int = 1, hour: str = "*"):
+    async def run(self, hour: str = "00:01,12:01"):
         logger.info("TGE Scheduler started")
         logger.info(f"Output directory: {self.output_dir}")
 
         schedule.clear()
         try:
-            if hour == "*":
-                run_times = self.get_default_run_times()
-                scheduled_jobs = [schedule.every().day.at(run_time) for run_time in run_times]
-                log_msg = f"Scheduled to run daily at: {', '.join(run_times)}"
-            else:
-                scheduled_jobs = [schedule.every().day.at(hour)]
-                log_msg = f"Scheduled to run daily at {hour}"
+            run_times = self.get_run_times(hour)
+            scheduled_jobs = [schedule.every().day.at(run_time) for run_time in run_times]
+            log_msg = f"Scheduled to run daily at: {', '.join(run_times)}"
         except ValueError as e:
-            logger.error(f"Invalid hour format '{hour}'. Expected HH:MM. Falling back to default schedule.")
+            logger.error(f"Invalid hour format '{hour}'. Expected comma-separated HH:MM values. Falling back to default schedule.")
             try:
+                schedule.clear()
                 run_times = self.get_default_run_times()
                 scheduled_jobs = [schedule.every().day.at(run_time) for run_time in run_times]
                 log_msg = f"Scheduled to run daily at: {', '.join(run_times)}"
@@ -167,14 +170,12 @@ def main():
     parser = argparse.ArgumentParser(description='TGE Scheduler for Home Assistant')
     parser.add_argument('--output-dir', default='/tmp/tgerdn',
                         help='Output directory for generated files (default: /tmp/tgerdn)')
-    parser.add_argument('--interval', type=int, default=1,
-                        help='Run every N hours (default: 1)')
-    parser.add_argument('--hour', default='*',
-                        help='Specific hour to run (HH:MM format, default: every hour)')
+    parser.add_argument('--hour', default='00:01,12:01',
+                        help='Comma-separated daily run times in HH:MM format (default: 00:01,12:01)')
     args = parser.parse_args()
 
     scheduler = TGEScheduler(output_dir=args.output_dir)
-    asyncio.run(scheduler.run(interval=args.interval, hour=args.hour))
+    asyncio.run(scheduler.run(hour=args.hour))
 
 
 if __name__ == "__main__":

@@ -66,14 +66,13 @@ python scheduler.py
 # Inny katalog wyjściowy
 python scheduler.py --output-dir /home/ha/tgerdn
 
-# Specyficzna godzina dzienna
-python scheduler.py --hour "00:00"
+# Własne godziny (lista oddzielona przecinkami)
+python scheduler.py --hour "06:30,18:45"
 ```
 
 **Opcje:**
 - `--output-dir`: katalog na wygenerowane pliki (domyślnie `/tmp/tgerdn`)
-- `--interval`: parametr zachowany dla kompatybilności, ale domyślny harmonogram używa stałych godzin 00:01 i 12:01
-- `--hour`: uruchomienie codziennie o podanej godzinie w formacie `HH:MM`; jeśli pozostawione domyślnie `*`, używane są godziny `00:01` i `12:01`
+- `--hour`: godziny codziennych uruchomień w formacie `HH:MM`, oddzielone przecinkami; domyślnie `00:01,12:01`
 
 ## Uruchomienie ciągłe
 
@@ -122,8 +121,7 @@ docker run -d \
   --name tge_rdn_scraper \
   -v /tmp/tgerdn:/data/tgerdn \
   -e OUTPUT_DIR=/data/tgerdn \
-  -e INTERVAL=1 \
-  -e HOUR="*" \
+   -e HOUR="00:01,12:01" \
   tge_rdn_scraper
 ```
 
@@ -137,8 +135,7 @@ Dodaj repozytorium TGE RDN do Home Assistant Add-on Store:
 
 Możesz też dodać ręcznie adres `https://github.com/ErwinRom/TgeRdn` w `Ustawienia` → `Dodatki` → `Sklep z dodatkami` → menu ⋮ → `Repozytoria`. Następnie zainstaluj `TGE RDN Scraper` i ustaw opcje dodatku:
    - `output_dir`: `/config/tgerdn`
-   - `interval`: `1`
-   - `hour`: `*`
+   - `hour`: `00:01,12:01` (lub własne godziny, np. `06:30,18:45`)
 Uruchom dodatek. Zapisze pliki JSON w katalogu konfiguracji HA pod `/config/tgerdn`.
 
 Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` w środowisku HA.

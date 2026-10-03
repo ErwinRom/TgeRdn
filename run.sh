@@ -11,8 +11,7 @@ with open('/data/options.json', encoding='utf-8') as options_file:
 	options = json.load(options_file)
 
 output_dir = options.get('output_dir', '/config/tgerdn')
-interval = int(options.get('interval', 1))
-hour = options.get('hour', '*')
+hour = options.get('hour', '00:01,12:01')
 
-asyncio.run(TGEScheduler(output_dir=output_dir).run(interval=interval, hour=hour))
+asyncio.run(TGEScheduler(output_dir=output_dir).run(hour=hour))
 PY

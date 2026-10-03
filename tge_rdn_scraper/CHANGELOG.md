@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4
+
+- Removed the unused `interval` option.
+- Added support for multiple custom daily run times; the default is 00:01 and 12:01.
+
 ## 1.0.3
 
 - Fixed the default scraper schedule to run only at 00:01 and 12:01.

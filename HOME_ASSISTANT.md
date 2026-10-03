@@ -22,8 +22,7 @@ Dodaj `https://github.com/ErwinRom/TgeRdn` w `Ustawienia` → `Dodatki` → `Skl
 
 Skonfiguruj opcje dodatku:
    - `output_dir`: `/config/tgerdn`
-   - `interval`: `1`
-   - `hour`: `*`
+  - `hour`: `00:01,12:01` (lub własne godziny, np. `06:30,18:45`)
 Uruchom dodatek. Repozytorium montuje katalog konfiguracji HA pod `/config`, a dane pojawią się w `/config/tgerdn`.
 
 Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` wewnątrz Home Assistant.
