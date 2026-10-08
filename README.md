@@ -17,6 +17,7 @@ Pythonowy skrypt do pobierania cen energii elektrycznej z TGE (Towarowa Giełda 
 ## Instalacja
 
 1. Zainstaluj wymagane biblioteki:
+
    ```bash
    pip install -r requirements.txt
    ```
@@ -24,9 +25,11 @@ Pythonowy skrypt do pobierania cen energii elektrycznej z TGE (Towarowa Giełda 
 ## Składniki projektu
 
 ### 1. Scraper (`scraper.py`)
+
 Pobiera dane cenowe z serwisu TGE.
 
 **Użycie:**
+
 ```bash
 # Domyślnie dla dzisiejszej daty
 python scraper.py
@@ -41,9 +44,11 @@ python scraper.py 27-05-2026 1
 **Wynik:** JSON z cenami godzinowymi.
 
 ### 2. Generator YAML (`yaml_generator.py`)
+
 Opcjonalne narzędzie ręczne do konwersji wyjścia JSON na YAML.
 
 **Użycie:**
+
 ```bash
 # Z pliku JSON do pliku YAML
 python yaml_generator.py prices.json output.yaml
@@ -56,9 +61,11 @@ python yaml_generator.py prices.json
 ```
 
 ### 3. Scheduler (`scheduler.py`)
+
 Uruchamia scraper i zapisuje pliki JSON dwa razy dziennie: o 00:01 i 12:01. Można też ustawić własną godzinę dzienną w formacie `HH:MM`.
 
 **Użycie:**
+
 ```bash
 # Uruchomienie domyślne (generuje w /tmp/tgerdn)
 python scheduler.py
@@ -71,6 +78,7 @@ python scheduler.py --hour "06:30,18:45"
 ```
 
 **Opcje:**
+
 - `--output-dir`: katalog na wygenerowane pliki (domyślnie `/tmp/tgerdn`)
 - `--hour`: godziny codziennych uruchomień w formacie `HH:MM`, oddzielone przecinkami; domyślnie `00:01,12:01`
 
@@ -80,10 +88,13 @@ python scheduler.py --hour "06:30,18:45"
 
 1. Dostosuj `tgerdn-scraper.service` do Twoich ścieżek.
 2. Skopiuj plik do katalogu systemd:
+
    ```bash
    sudo cp tgerdn-scraper.service /etc/systemd/system/
    ```
+
 3. Przeładuj systemd i włącz usługę:
+
    ```bash
    sudo systemctl daemon-reload
    sudo systemctl enable tgerdn-scraper.service
@@ -93,11 +104,13 @@ python scheduler.py --hour "06:30,18:45"
 ### Opcja 2: Cron
 
 Uruchom skrypt instalacyjny:
+
 ```bash
 bash setup_cron.sh
 ```
 
 Lub dodaj ręcznie do crontaba:
+
 ```bash
 1 0 * * * cd /home/erwin/Projekty/TgeRdn && python3 scheduler.py --output-dir /tmp/tgerdn >> /var/log/tgerdn.log 2>&1
 1 12 * * * cd /home/erwin/Projekty/TgeRdn && python3 scheduler.py --output-dir /tmp/tgerdn >> /var/log/tgerdn.log 2>&1
@@ -106,16 +119,19 @@ Lub dodaj ręcznie do crontaba:
 ### Opcja 3: Kontener Docker
 
 Zbuduj obraz:
+
 ```bash
 docker build -t tge_rdn_scraper .
 ```
 
 Uruchom jednorazowo:
+
 ```bash
 docker run --rm -v /tmp/tgerdn:/data/tgerdn tge_rdn_scraper
 ```
 
 Uruchom jako usługę ciągłą:
+
 ```bash
 docker run -d \
   --name tge_rdn_scraper \
@@ -134,8 +150,9 @@ Dodaj repozytorium TGE RDN do Home Assistant Add-on Store:
 [Dodaj repozytorium TGE RDN](https://my.home-assistant.io/redirect/supervisor_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FErwinRom%2FTgeRdn)
 
 Możesz też dodać ręcznie adres `https://github.com/ErwinRom/TgeRdn` w `Ustawienia` → `Dodatki` → `Sklep z dodatkami` → menu ⋮ → `Repozytoria`. Następnie zainstaluj `TGE RDN Scraper` i ustaw opcje dodatku:
-   - `output_dir`: `/config/tgerdn`
-   - `hour`: `00:01,12:01` (lub własne godziny, np. `06:30,18:45`)
+
+- `output_dir`: `/config/tgerdn`
+- `hour`: `00:01,12:01` (lub własne godziny, np. `06:30,18:45`)
 Uruchom dodatek. Zapisze pliki JSON w katalogu konfiguracji HA pod `/config/tgerdn`.
 
 Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` w środowisku HA.
@@ -143,6 +160,7 @@ Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` w środowisk
 ## Integracja z Home Assistant
 
 Przykład REST sensor w `configuration.yaml`:
+
 ```yaml
 command_line:
   - sensor:
@@ -178,7 +196,7 @@ Możesz też użyć czujnika plikowego (template file sensor) albo innych integr
 
 W katalogu wyjściowym będą powstawać następujące pliki:
 
-```
+```text
 {output_dir}/
 ├── tgerdn_prices.json
 └── tgerdn_prices_tomorrow.json
@@ -187,19 +205,23 @@ W katalogu wyjściowym będą powstawać następujące pliki:
 ## Rozwiązywanie problemów
 
 ### Brak wyjścia z skryptu
+
 - Sprawdź, czy strona TGE jest dostępna.
 - Sprawdź datę i parametry w wywołaniu.
 - Sprawdź połączenie sieciowe.
 
 ### Brak danych JSON
+
 - Sprawdź, czy plik JSON zawiera dane `fixing_i_prices`.
 
 ### Scheduler nie działa
+
 - Cron: `crontab -l`
 - Systemd: `sudo journalctl -u tgerdn-scraper.service`
 - Sprawdź ścieżkę do Pythona i uprawnienia katalogu.
 
 ### Uprawnienia plików
+
 ```bash
 sudo chown homeassistant:homeassistant /tmp/tgerdn
 chmod 755 /tmp/tgerdn

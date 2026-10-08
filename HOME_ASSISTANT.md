@@ -1,19 +1,26 @@
 # Konfiguracja Home Assistant dla TGE RDN
 
 ## Przegląd
+
 Dwa czujniki REST, które aktualizują się automatycznie co godzinę:
+
 1. `sensor.tge_rdn_cena_dzis` - ceny dzisiejsze
 2. `sensor.tge_rdn_cena_jutro` - ceny jutrzejsze
 
 ## Wymagania wstępne
+
 1. Zainstaluj zależności:
+
    ```bash
    pip install -r requirements.txt
    ```
+
 2. Uruchom scheduler:
+
    ```bash
    python scheduler.py --output-dir /tmp/tgerdn
    ```
+
 3. Jeśli używasz HA OS add-on, ustaw `output_dir` na `/config/tgerdn` i sprawdź dostępność tego katalogu dla Home Assistant.
 
 ## Instalacja z repozytorium Home Assistant
@@ -21,8 +28,9 @@ Dwa czujniki REST, które aktualizują się automatycznie co godzinę:
 Dodaj `https://github.com/ErwinRom/TgeRdn` w `Ustawienia` → `Dodatki` → `Sklep z dodatkami` → menu ⋮ → `Repozytoria`, a następnie zainstaluj `TGE RDN Scraper`.
 
 Skonfiguruj opcje dodatku:
-   - `output_dir`: `/config/tgerdn`
-  - `hour`: `00:01,12:01` (lub własne godziny, np. `06:30,18:45`)
+
+- `output_dir`: `/config/tgerdn`
+- `hour`: `00:01,12:01` (lub własne godziny, np. `06:30,18:45`)
 Uruchom dodatek. Repozytorium montuje katalog konfiguracji HA pod `/config`, a dane pojawią się w `/config/tgerdn`.
 
 Po uruchomieniu dodatek zapisuje pliki do katalogu `/config/tgerdn` wewnątrz Home Assistant.
@@ -185,7 +193,7 @@ automation:
 
 Scheduler tworzy pliki w katalogu `/config/tgerdn/` dla HA OS add-on:
 
-```
+```text
 /config/tgerdn/
 ├── tgerdn_prices.json
 └── tgerdn_prices_tomorrow.json
@@ -194,12 +202,14 @@ Scheduler tworzy pliki w katalogu `/config/tgerdn/` dla HA OS add-on:
 ## Rozwiązywanie problemów
 
 ### Czujniki są niedostępne
+
 1. Sprawdź, czy scheduler działa: `ps aux | grep scheduler.py`
 2. Sprawdź, czy pliki istnieją: `ls -la /config/tgerdn/`
 3. Sprawdź zawartość: `cat /config/tgerdn/tgerdn_prices.json | head`
 4. Przeładuj integrację REST w Home Assistant.
 
 ### Problem z uprawnieniami
+
 ```bash
 sudo chown homeassistant:homeassistant /config/tgerdn
 chmod 755 /config/tgerdn
@@ -207,10 +217,12 @@ chmod 644 /config/tgerdn/*.json
 ```
 
 ### Brak danych w atrybucie `prices`
+
 - Upewnij się, że plik JSON zawiera dane `prices`.
 - Sprawdź działanie scraper-a ręcznie: `python scraper.py 28-05-2026`
 
 ## Uwagi końcowe
+
 - Integracja oparta jest na lokalnym pliku JSON.
 - Home Assistant odczytuje dane co 5 minut.
 - Scheduler aktualizuje dane co godzinę.
