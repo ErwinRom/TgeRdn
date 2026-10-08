@@ -11,8 +11,7 @@ Pythonowy skrypt do pobierania cen energii elektrycznej z TGE (Towarowa Giełda 
 - ✅ zapisuje daty dostawy i godziny
 - ✅ 24 ceny godzinowe na dzień
 - ✅ generuje pliki JSON do odczytu w Home Assistant
-- ✅ automatyczne uruchamianie co godzinę
-- ✅ wyjście w formacie JSON
+- ✅ automatyczne uruchamianie w wybranych godzinach
 
 ## Instalacja
 
