@@ -45,8 +45,8 @@ class TGEScheduler:
 
     async def run_scraper(self) -> bool:
         labels_config = [
-            ("dzis", self.get_date_string(), "tgerdn_prices.json"),
-            ("jutro", self.get_tomorrow_date_string(), "tgerdn_prices_tomorrow.json")
+            ("today", self.get_date_string(), "tgerdn_prices.json"),
+            ("tomorrow", self.get_tomorrow_date_string(), "tgerdn_prices_tomorrow.json")
         ]
 
         for label, date_str, _ in labels_config:

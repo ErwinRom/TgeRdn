@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- Removed polish words from logs.
+
 ## 1.0.4
 
 - Removed the unused `interval` option.
